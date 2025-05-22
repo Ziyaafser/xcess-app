@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // ✅ this is correct
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // ✅ this is correct
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 
 
 class AddFoodPage extends StatefulWidget {
@@ -176,7 +177,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   onPressed: _submitFood,
                   child: const Text("Add Food"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
+                    backgroundColor: Colors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
@@ -197,45 +198,47 @@ class _AddFoodPageState extends State<AddFoodPage> {
     );
   }
 
-  Widget _dynamicPricingInfoCard() {
-    return Card(
-      color: Colors.orange.shade50,
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              "⚠️ How Dynamic Pricing Works",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.deepOrange,
-              ),
+Widget _dynamicPricingInfoCard() {
+  return Card(
+    color: Colors.orange.shade50,
+    elevation: 2,
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    child: Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            "💡 How Dynamic Pricing Works",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.orange,
             ),
-            SizedBox(height: 8),
-            Text(
-              "The system will reduce the price automatically based on how close the expiry time is:",
-              style: TextStyle(fontSize: 14),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "- 0% discount when freshly added\n"
-              "- ~25% off halfway to expiry\n"
-              "- 50% off 1 hour before expiry\n"
-              "- Food will be hidden after expiry",
-              style: TextStyle(fontSize: 13),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "Formula: 50 × (1 - (time remaining ÷ total duration))",
-              style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "The system will automatically reduce the food price based on how close it is to the expiry time you set.",
+            style: TextStyle(fontSize: 14),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "- Price updates every 15 minutes for better accuracy and performance.\n"
+            "- Discount increases gradually as time passes.\n"
+            "- Max 50% discount is applied exactly 1 hour before expiry.\n"
+            "- The price stays at 50% until expiry.\n"
+            "- Food will be automatically removed from the listing after expiry.",
+            style: TextStyle(fontSize: 13),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "Formula: 50 × (1 - (remaining time ÷ total time))\n"
+            "• Only applies from time of food creation to 1 hour before expiry.",
+            style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
