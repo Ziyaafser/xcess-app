@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
+import 'addfood_page.dart';
+
 
 
 class VendorInventoryPage extends StatefulWidget {
@@ -79,17 +81,29 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                           color: Colors.white),
                     ),
                     const SizedBox(height: 13),
-                    Row(
-                      children: const [
-                        Icon(Icons.add_circle, color: Colors.white),
-                        SizedBox(width: 6),
-                        Text("Add food", style: TextStyle(color: Colors.white)),
-                        SizedBox(width: 16),
-                        Icon(Icons.edit, color: Colors.white),
-                        SizedBox(width: 6),
-                        Text("Edit food", style: TextStyle(color: Colors.white)),
+                   Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AddFoodPage()),
+                            );
+                          },
+                          child: Row(
+                            children: const [
+                              Icon(Icons.add_circle, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text("Add food", style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Icon(Icons.edit, color: Colors.white),
+                        const SizedBox(width: 6),
+                        const Text("Edit food", style: TextStyle(color: Colors.white)),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
