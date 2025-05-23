@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
 import 'addfood_page.dart';
+import 'editfood_page.dart'; // 🔧 Edit page import
 
 class VendorInventoryPage extends StatefulWidget {
   const VendorInventoryPage({super.key});
@@ -73,9 +74,9 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                     const Text(
                       "Your Inventory",
                       style: TextStyle(
-                        fontSize: 29,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                          fontSize: 29,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                     ),
                     const SizedBox(height: 13),
                     Row(
@@ -144,7 +145,6 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                     final expiryTime = food['expiryTime'] as Timestamp;
                     final dynamicPrice = getStepBasedDynamicPrice(price, addedTime, expiryTime);
 
-                    // Calculate remaining time
                     final now = DateTime.now();
                     final expiry = expiryTime.toDate();
                     Duration remaining = expiry.difference(now);
@@ -167,14 +167,45 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                            child: Image.network(
-                              imageUrl,
-                              height: 110,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                child: Image.network(
+                                  imageUrl,
+                                  height: 110,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => EditFoodPage(
+                                          foodId: food.id,
+                                          currentName: name,
+                                          currentDesc: food['description'],
+                                          currentPrice: price,
+                                          currentQty: quantity,
+                                          currentImageUrl: imageUrl,
+                                          currentExpiry: expiryTime,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const CircleAvatar(
+                                    radius: 14,
+                                    backgroundColor: Colors.white70,
+                                    child: Icon(Icons.edit, size: 16, color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -191,30 +222,28 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                               Row(
-                                children: [
-                                  const Icon(Icons.star, size: 16, color: Colors.orange),
-                                  const SizedBox(width: 4),
-                                  const Text("4.9", style: TextStyle(fontSize: 13)),
-                                  const SizedBox(width: 12),
-                                  const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Text("$quantity units", style: const TextStyle(fontSize: 13)),
-                                ],
-                              ),
-
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, size: 16, color: Colors.orange),
+                                    const SizedBox(width: 4),
+                                    const Text("4.9", style: TextStyle(fontSize: 13)),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text("$quantity units", style: const TextStyle(fontSize: 13)),
+                                  ],
+                                ),
                                 const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.timer, size: 14, color: Colors.redAccent),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        remainingTimeText,
-                                        style: const TextStyle(fontSize: 12, color: Colors.redAccent),
-                                      ),
-                                    ],
-                                  ),
-
+                                Row(
+                                  children: [
+                                    const Icon(Icons.timer, size: 14, color: Colors.redAccent),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      remainingTimeText,
+                                      style: const TextStyle(fontSize: 12, color: Colors.redAccent),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [

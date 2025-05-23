@@ -152,20 +152,29 @@ class _AddFoodPageState extends State<AddFoodPage> {
                           setState(() => _expiryTime = fullDate);
                         }
                       },
-                      icon: const Icon(Icons.timer),
-                      label: Text(_expiryTime == null
-                          ? 'Select Expiry Time'
-                          : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}'),
+                      icon: const Icon(Icons.timer, color: Colors.white,),
+                      label: Text(
+                        _expiryTime == null
+                            ? 'Select Expiry Time'
+                            : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(color: Colors.white), 
+                      ), 
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
+             const Text(
                 "* Food expiry time must be at least 2 hours from now.",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
+              SizedBox(height: 4),
+              const Text(
+                "* Price and expiry time cannot be edited after creation.",
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+
               const SizedBox(height: 16),
 
               _dynamicPricingInfoCard(),
@@ -178,6 +187,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   child: const Text("Add Food"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
