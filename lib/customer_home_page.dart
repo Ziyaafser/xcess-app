@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
+import 'explore_page.dart';
+import 'foodDetails_page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -41,25 +43,50 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   fit: BoxFit.cover,
                 ),
                 Positioned(
+                  right: 16,
+                  top: 30,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ExplorePage()),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.search, color: Colors.orange),
+                    ),
+                  ),
+                ),
+                Positioned(
                   left: 25,
                   top: 35,
                   right: 25,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Your Location", style: TextStyle(color: Colors.white, fontSize: 14)),
+                      const Text("Your Location",
+                          style: TextStyle(color: Colors.white, fontSize: 14)),
                       const SizedBox(height: 4),
                       Row(
                         children: const [
                           Icon(Icons.location_on, color: Colors.white, size: 18),
                           SizedBox(width: 5),
-                          Text("Johor Bahru", style: TextStyle(fontSize: 16, color: Colors.white)),
+                          Text("Johor Bahru",
+                              style: TextStyle(fontSize: 16, color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 20),
                       const Text(
                         "Provides the best\nfood for you",
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                       ),
                     ],
                   ),
@@ -68,7 +95,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 30)),
-
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -81,7 +107,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No food available yet", style: TextStyle(color: Colors.grey)));
+                  return const Center(
+                      child: Text("No food available yet",
+                          style: TextStyle(color: Colors.grey)));
                 }
 
                 final foodItems = snapshot.data!.docs;
@@ -106,7 +134,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     final addedTime = food['addedTime'] as Timestamp;
                     final expiryTime = food['expiryTime'] as Timestamp;
                     final vendorID = food['vendorID'];
-                    final dynamicPrice = getStepBasedDynamicPrice(price, addedTime, expiryTime);
+                    final dynamicPrice =
+                        getStepBasedDynamicPrice(price, addedTime, expiryTime);
 
                     final now = DateTime.now();
                     final expiry = expiryTime.toDate();
@@ -122,102 +151,136 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     }
 
                     return FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance.collection('users').doc(vendorID).get(),
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(vendorID)
+                          .get(),
                       builder: (context, vendorSnapshot) {
                         String vendorName = "Restaurant";
-                        if (vendorSnapshot.hasData && vendorSnapshot.data!.exists) {
-                          vendorName = vendorSnapshot.data!.get('userName');
+                        if (vendorSnapshot.hasData &&
+                            vendorSnapshot.data!.exists) {
+                          vendorName =
+                              vendorSnapshot.data!.get('userName') ?? vendorName;
                         }
 
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 6)],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                child: Image.network(
-                                  imageUrl,
-                                  height: 100,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FoodDetailsPage(foodData: food),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      vendorName,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.star, size: 16, color: Colors.orange),
-                                        const SizedBox(width: 4),
-                                        const Text("4.9", style: TextStyle(fontSize: 13)),
-                                        const SizedBox(width: 12),
-                                        const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
-                                        const SizedBox(width: 4),
-                                        Text("$quantity units", style: const TextStyle(fontSize: 13)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.timer, size: 14, color: Colors.redAccent),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          remainingTimeText,
-                                          style: const TextStyle(fontSize: 12, color: Colors.redAccent),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "RM${price.toStringAsFixed(2)}",
-                                          style: const TextStyle(
-                                            decoration: TextDecoration.lineThrough,
-                                            color: Colors.grey,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "RM${dynamicPrice.toStringAsFixed(2)}",
-                                          style: const TextStyle(
-                                            color: Colors.deepOrange,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.shade200,
+                                    blurRadius: 6)
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12)),
+                                  child: Image.network(
+                                    imageUrl,
+                                    height: 100,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        vendorName,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.star,
+                                              size: 16,
+                                              color: Colors.orange),
+                                          const SizedBox(width: 4),
+                                          const Text("4.9",
+                                              style:
+                                                  TextStyle(fontSize: 13)),
+                                          const SizedBox(width: 12),
+                                          const Icon(Icons.inventory_2_outlined,
+                                              size: 14, color: Colors.grey),
+                                          const SizedBox(width: 4),
+                                          Text("$quantity units",
+                                              style: const TextStyle(
+                                                  fontSize: 13)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.timer,
+                                              size: 14,
+                                              color: Colors.redAccent),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            remainingTimeText,
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.redAccent),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "RM${price.toStringAsFixed(2)}",
+                                            style: const TextStyle(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: Colors.grey,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            "RM${dynamicPrice.toStringAsFixed(2)}",
+                                            style: const TextStyle(
+                                              color: Colors.deepOrange,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -244,7 +307,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     );
   }
 
-  double getStepBasedDynamicPrice(double originalPrice, Timestamp addedTime, Timestamp expiryTime) {
+  double getStepBasedDynamicPrice(
+      double originalPrice, Timestamp addedTime, Timestamp expiryTime) {
     final now = DateTime.now();
     final expiry = expiryTime.toDate();
     final added = addedTime.toDate();

@@ -193,7 +193,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: _submitForm,
-                  child: const Text("Register", style: TextStyle(fontSize: 16)),
+                  child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
                 const SizedBox(height: 30),
                 const Divider(),

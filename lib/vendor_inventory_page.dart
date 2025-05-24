@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
 import 'addfood_page.dart';
-import 'editfood_page.dart'; // 🔧 Edit page import
+import 'editfood_page.dart'; 
 
 class VendorInventoryPage extends StatefulWidget {
   const VendorInventoryPage({super.key});
@@ -78,7 +78,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                           fontWeight: FontWeight.bold,
                           color: Colors.white),
                     ),
-                    const SizedBox(height: 13),
+                    const SizedBox(height: 15),
                     Row(
                       children: [
                         GestureDetector(
@@ -91,15 +91,11 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                           child: Row(
                             children: const [
                               Icon(Icons.add_circle, color: Colors.white),
-                              SizedBox(width: 6),
-                              Text("Add food", style: TextStyle(color: Colors.white)),
+                              SizedBox(width: 8),
+                              Text("Add food", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.edit, color: Colors.white),
-                        const SizedBox(width: 6),
-                        const Text("Edit food", style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ],

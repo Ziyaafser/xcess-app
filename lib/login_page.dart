@@ -140,7 +140,7 @@ Widget build(BuildContext context) {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Sign In", style: TextStyle(fontSize: 16)),
+                      : const Text("Sign In", style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ),
               const SizedBox(height: 20),

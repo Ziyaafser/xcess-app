@@ -134,36 +134,60 @@ class _AddFoodPageState extends State<AddFoodPage> {
               ),
               const SizedBox(height: 12),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
+           Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: Colors.orange,
+                              onPrimary: Colors.white,
+                              onSurface: Colors.black,
+                            ),
+                            timePickerTheme: const TimePickerThemeData(
+                            dialBackgroundColor: Color(0xFFFFF3E0),   // soft orange bg
+                            dialHandColor: Colors.orange,
+                            dialTextColor: Colors.black,
+                            hourMinuteColor: Colors.orange,       // lighter than solid orange
+                            hourMinuteTextColor: Colors.black,
+                            entryModeIconColor: Colors.orange,
+                            helpTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                            dayPeriodTextColor: Colors.black,
+                            dayPeriodColor: Colors.orange,
+                            ),
+                          ),
+                          child: child!,
                         );
-                        if (pickedTime != null) {
-                          final now = DateTime.now();
-                          final fullDate = DateTime(
-                            now.year, now.month, now.day,
-                            pickedTime.hour, pickedTime.minute,
-                          );
-                          setState(() => _expiryTime = fullDate);
-                        }
                       },
-                      icon: const Icon(Icons.timer, color: Colors.white,),
-                      label: Text(
-                        _expiryTime == null
-                            ? 'Select Expiry Time'
-                            : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(color: Colors.white), 
-                      ), 
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                    ),
+                    );
+                    if (pickedTime != null) {
+                      final now = DateTime.now();
+                      final fullDate = DateTime(
+                        now.year, now.month, now.day,
+                        pickedTime.hour, pickedTime.minute,
+                      );
+                      setState(() => _expiryTime = fullDate);
+                    }
+                  },
+                  icon: const Icon(Icons.timer, color: Colors.white),
+                  label: Text(
+                    _expiryTime == null
+                        ? 'Select Expiry Time'
+                        : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(color: Colors.white),
                   ),
-                ],
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                ),
               ),
+            ],
+          ),
+
               const SizedBox(height: 6),
              const Text(
                 "* Food expiry time must be at least 2 hours from now.",
