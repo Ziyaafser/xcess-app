@@ -1,39 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'foodDetails_page.dart';
+import 'admin_food_details_page.dart';
 
-class ExplorePage extends StatefulWidget {
-  const ExplorePage({super.key});
+class AdminFoodManagementPage extends StatefulWidget {
+  const AdminFoodManagementPage({super.key});
 
   @override
-  State<ExplorePage> createState() => _ExplorePageState();
+  State<AdminFoodManagementPage> createState() => _AdminFoodManagementPageState();
 }
 
-class _ExplorePageState extends State<ExplorePage> {
+class _AdminFoodManagementPageState extends State<AdminFoodManagementPage> {
   String _searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            "Food Management",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          centerTitle: true,
         ),
-        title: const Text(
-          "Search Food",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        centerTitle: true,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.share, color: Colors.black),
-          )
-        ],
-      ),
       body: Column(
         children: [
           Padding(
@@ -57,7 +51,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Search Food',
+                  hintText: 'Search by food or vendor name',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -78,45 +72,45 @@ class _ExplorePageState extends State<ExplorePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final allFoods = snapshot.data!.docs.where((doc) {
-                  final name = doc['foodName'].toString().toLowerCase();
-                  return name.contains(_searchQuery);
-                }).toList();
-
-                if (allFoods.isEmpty) {
-                  return const Center(
-                    child: Text("No matching food found", style: TextStyle(color: Colors.grey)),
-                  );
-                }
+                final allFoods = snapshot.data!.docs;
 
                 return ListView.builder(
                   itemCount: allFoods.length,
                   itemBuilder: (context, index) {
                     final food = allFoods[index];
-                    final name = food['foodName'];
-                    final imageUrl = food['imageUrl'];
-                    final price = food['price'].toDouble();
+                    final foodName = food['foodName'].toString().toLowerCase();
                     final vendorID = food['vendorID'];
+                    final matchesSearch = _searchQuery.isEmpty || foodName.contains(_searchQuery);
 
                     return FutureBuilder<DocumentSnapshot>(
                       future: FirebaseFirestore.instance.collection('users').doc(vendorID).get(),
                       builder: (context, userSnapshot) {
-                        final vendorName = userSnapshot.hasData && userSnapshot.data!.exists
-                            ? userSnapshot.data!.get('userName')
-                            : "Vendor";
+                        String vendorName = "Vendor";
+                        if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                          vendorName = userSnapshot.data!.get('userName').toString().toLowerCase();
+                        }
+
+                        final matchesVendor = vendorName.contains(_searchQuery);
+                        if (!matchesSearch && !matchesVendor) return const SizedBox.shrink();
 
                         return ListTile(
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover),
+                            child: Image.network(
+                              food['imageUrl'],
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text("by $vendorName"),
+                          title: Text(food['foodName'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text("Vendor: $vendorName"),
+                          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => FoodDetailsPage(foodData: food),
+                                builder: (_) => AdminFoodDetailsPage(foodData: food),
                               ),
                             );
                           },

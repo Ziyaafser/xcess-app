@@ -112,10 +112,25 @@ class _EditFoodPageState extends State<EditFoodPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Food"),
-        backgroundColor: Colors.orange,
+     appBar: AppBar(
+      backgroundColor: Colors.orange,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
       ),
+      title: const Text(
+        "Edit Food",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      centerTitle: true,
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 12),
+          child: Icon(Icons.share, color: Colors.black),
+        ),
+      ],
+    ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

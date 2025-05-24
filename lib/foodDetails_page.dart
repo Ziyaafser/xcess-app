@@ -66,10 +66,10 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text("About This Menu", style: TextStyle(color: Colors.black)),
+            title: const Text("Food Details", style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold, color: Colors.black)),
             centerTitle: true,
             actions: const [
               Padding(

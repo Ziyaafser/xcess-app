@@ -232,8 +232,21 @@ Future<String?> _askPassword(BuildContext context) async {
     final showSave = _editName || _editEmail || _editPassword;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
-      body: Padding(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: const Text(
+        "User Profile",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      centerTitle: true,
+      
+    ),
+        body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: ListView(
           children: [

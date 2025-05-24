@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_page.dart';
 import 'account_management_page.dart';
+import 'admin_food_management_page.dart';
 
 
 class AdminDashboardPage extends StatefulWidget {
@@ -141,7 +142,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   );
                 }),
                 _buildMenuTile("Food Management", Icons.fastfood, () {
-                  // TODO: Navigate to Food Management Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminFoodManagementPage()),
+                  );
                 }),
                 _buildMenuTile("View Analytics", Icons.bar_chart, () {
                   // TODO: Navigate to Analytics Page
