@@ -24,18 +24,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     fetchUserCounts();
   }
 
-  Future<void> fetchUserCounts() async {
-    final snapshot = await FirebaseFirestore.instance.collection('users').get();
-    int users = snapshot.docs.length;
-    int vendors = snapshot.docs.where((doc) => doc['role'] == 'vendor').length;
-    int customers = snapshot.docs.where((doc) => doc['role'] == 'customer').length;
+Future<void> fetchUserCounts() async {
+  final snapshot = await FirebaseFirestore.instance.collection('users').get();
 
-    setState(() {
-      totalUsers = users;
-      totalVendors = vendors;
-      totalCustomers = customers;
-    });
+  int vendors = 0;
+  int customers = 0;
+
+  for (var doc in snapshot.docs) {
+    final role = doc['role'];
+    if (role == 'vendor') {
+      vendors++;
+    } else if (role == 'customer') {
+      customers++;
+    }
   }
+
+  setState(() {
+    totalVendors = vendors;
+    totalCustomers = customers;
+    totalUsers = vendors + customers;
+  });
+}
+
 
   void _onItemTapped(int index) {
     setState(() {

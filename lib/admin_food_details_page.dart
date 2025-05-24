@@ -87,25 +87,32 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
     }
   }
 
-  InputDecoration _inputBoxDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-      filled: true,
-      fillColor: Colors.grey[200],
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.black54),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.black54),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.black, width: 2),
-      ),
-    );
+  InputDecoration _decoration(String label) {
+    return _isEditing
+        ? InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.black54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.black, width: 2),
+            ),
+          )
+        : InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.black87),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black, width: 2),
+            ),
+          );
   }
 
   @override
@@ -120,8 +127,9 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance.collection('users').doc(vendorID).get(),
       builder: (context, snapshot) {
-        final vendorName =
-            snapshot.hasData && snapshot.data!.exists ? snapshot.data!.get('userName') : "Vendor";
+        final vendorName = snapshot.hasData && snapshot.data!.exists
+            ? snapshot.data!.get('userName')
+            : "Vendor";
 
         return Scaffold(
           appBar: AppBar(
@@ -150,14 +158,19 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(imageUrl, height: 220, width: double.infinity, fit: BoxFit.cover),
+                  child: Image.network(
+                    imageUrl,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: _nameController,
                   enabled: _isEditing,
                   style: const TextStyle(color: Colors.black87),
-                  decoration: _inputBoxDecoration("Food Name"),
+                  decoration: _decoration("Food Name"),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -167,9 +180,12 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Original Price: RM${price.toStringAsFixed(2)}",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                         Text("Discounted Price: RM${dynamicPrice.toStringAsFixed(2)}",
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepOrange)),
                       ],
                     ),
                     Text("Expiry: ${expiryTime.hour}:${expiryTime.minute.toString().padLeft(2, '0')}",
@@ -182,7 +198,7 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
                   enabled: _isEditing,
                   maxLines: 2,
                   style: const TextStyle(color: Colors.black87),
-                  decoration: _inputBoxDecoration("Description"),
+                  decoration: _decoration("Description"),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -190,11 +206,11 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
                   enabled: _isEditing,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.black87),
-                  decoration: _inputBoxDecoration("Quantity"),
+                  decoration: _decoration("Quantity"),
                 ),
                 const SizedBox(height: 16),
                 Text("Vendor: $vendorName", style: const TextStyle(color: Colors.black87)),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 if (_isEditing)
                   Row(
                     children: [
