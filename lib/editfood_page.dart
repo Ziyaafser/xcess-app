@@ -124,12 +124,6 @@ class _EditFoodPageState extends State<EditFoodPage> {
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
       ),
       centerTitle: true,
-      actions: const [
-        Padding(
-          padding: EdgeInsets.only(right: 12),
-          child: Icon(Icons.share, color: Colors.black),
-        ),
-      ],
     ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

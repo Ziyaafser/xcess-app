@@ -27,12 +27,7 @@ class _ExplorePageState extends State<ExplorePage> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         centerTitle: true,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.share, color: Colors.black),
-          )
-        ],
+       
       ),
       body: Column(
         children: [

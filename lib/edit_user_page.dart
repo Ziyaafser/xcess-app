@@ -23,6 +23,8 @@ class EditUserPage extends StatefulWidget {
 class _EditUserPageState extends State<EditUserPage> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
+  late TextEditingController _addressController;
+
   String _selectedRole = 'customer';
   final List<String> _roles = ['customer', 'vendor', 'admin'];
 
@@ -32,6 +34,16 @@ class _EditUserPageState extends State<EditUserPage> {
     _nameController = TextEditingController(text: widget.name);
     _emailController = TextEditingController(text: widget.email);
     _selectedRole = widget.role;
+    _addressController = TextEditingController();
+
+    // Load user address from Firestore
+    FirebaseFirestore.instance.collection('users').doc(widget.userId).get().then((doc) {
+      if (doc.exists) {
+        setState(() {
+          _addressController.text = doc.data()?['userAddress'] ?? '';
+        });
+      }
+    });
   }
 
   Future<void> _saveChanges() async {
@@ -40,6 +52,7 @@ class _EditUserPageState extends State<EditUserPage> {
         'userName': _nameController.text.trim(),
         'userEmail': _emailController.text.trim(),
         'role': _selectedRole,
+        'userAddress': _addressController.text.trim(),
       });
       Fluttertoast.showToast(msg: "User updated successfully");
       Navigator.pop(context);
@@ -55,21 +68,20 @@ class _EditUserPageState extends State<EditUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-   appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            "Edit User",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          centerTitle: true,
-          actions: const [
-          ],
-        ),      body: Padding(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          "Edit User",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: ListView(
           children: [
@@ -81,6 +93,11 @@ class _EditUserPageState extends State<EditUserPage> {
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: "Email Address"),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: "Address"),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
@@ -102,8 +119,7 @@ class _EditUserPageState extends State<EditUserPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
-                    child: const Text("Save Changes", style: TextStyle(color: Colors.white),
-                    ),
+                    child: const Text("Save Changes", style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 10),

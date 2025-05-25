@@ -62,21 +62,71 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
               ),
               Positioned(
                 left: 25,
-                top: 40,
+                top: 30,
+                right: 25,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       vendorName.isNotEmpty ? vendorName : "Loading...",
-                      style: const TextStyle(fontSize: 22, color: Colors.white),
+                      style: const TextStyle(fontSize: 21,fontWeight: FontWeight.bold, color: Colors.orange),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 4),
+                    FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser?.uid)
+                          .get(),
+                      builder: (context, snapshot) {
+                        String location = "Loading...";
+                        if (snapshot.hasData && snapshot.data!.exists) {
+                          final data = snapshot.data?.data() as Map<String, dynamic>?;
+                          location = (data != null &&
+                                  data.containsKey('userAddress') &&
+                                  data['userAddress'] != null &&
+                                  data['userAddress'].toString().trim().isNotEmpty)
+                              ? data['userAddress']
+                              : "Location not set";
+                        }
+
+                        final isUnset = location == "Location not set";
+
+                        return GestureDetector(
+                          onTap: () {
+                            if (isUnset) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                              );
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.orange, size: 17),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  location,
+                                  style: TextStyle(
+                                    color: isUnset ? Colors.redAccent : Colors.orange,
+                                    fontStyle: isUnset ? FontStyle.italic : FontStyle.italic,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     const Text(
                       "Your Inventory",
                       style: TextStyle(
-                          fontSize: 29,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                        fontSize: 29,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 15),
                     Row(
@@ -92,7 +142,11 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                             children: const [
                               Icon(Icons.add_circle, color: Colors.white),
                               SizedBox(width: 8),
-                              Text("Add food", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                              Text("Add food",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.white)),
                             ],
                           ),
                         ),
@@ -103,6 +157,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
               ),
             ],
           ),
+
           const SizedBox(height: 30),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
