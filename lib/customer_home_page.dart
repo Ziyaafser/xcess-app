@@ -78,32 +78,47 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           .doc(FirebaseAuth.instance.currentUser?.uid)
                           .get(),
                       builder: (context, snapshot) {
-                        String displayAddress = "Loading...";
+                        String location = "Loading...";
                         if (snapshot.hasData && snapshot.data!.exists) {
-                          displayAddress = snapshot.data!.get('userAddress') ?? "No location set";
+                        final data = snapshot.data?.data() as Map<String, dynamic>?;
+
+                        location = (data != null && data.containsKey('userAddress') && data['userAddress'] != null && data['userAddress'].toString().trim().isNotEmpty)    ? snapshot.data!.get('userAddress')
+                            : "Location not set";
                         }
 
-                        final isUnset = displayAddress == "No location set";
+                        final isUnset = location == "Location not set";
 
-                        return Row(
-                          children: [
-                            const Icon(Icons.location_on, color: Colors.white, size: 18),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                                displayAddress,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: isUnset ? Colors.redAccent : Colors.white,
-                                  fontStyle: isUnset ? FontStyle.italic : FontStyle.normal,
+                    return GestureDetector(
+                          onTap: () {
+                            if (isUnset) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                              );
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.white, size: 18),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  location,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isUnset ? Colors.redAccent : Colors.white,
+                                    fontStyle: isUnset ? FontStyle.italic : FontStyle.normal,
+                                    decoration: isUnset ? TextDecoration.underline : null,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         );
                       },
                     ),
+
 
                       const SizedBox(height: 20),
                       const Text(
