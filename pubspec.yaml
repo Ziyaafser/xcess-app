@@ -35,8 +35,11 @@ dependencies:
   firebase_auth: ^4.17.4
   cloud_firestore: ^4.15.4
   fluttertoast: ^8.2.4
-  image_picker: ^1.0.0 
-  firebase_storage: ^11.5.0 
+  image_picker: ^1.0.0
+  firebase_storage: ^11.5.0
+  # google_maps_flutter: ^2.5.0
+  geocoding: ^2.0.4
+  # geolocator: ^10.1.0
 
 
 

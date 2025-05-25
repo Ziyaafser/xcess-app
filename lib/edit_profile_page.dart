@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'login_page.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -16,8 +17,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _emailController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
+  final _addressController = TextEditingController();
 
   bool _isEditing = false;
+  double? _latitude;
+  double? _longitude;
 
   String _initialName = '';
   String _initialEmail = '';
@@ -36,6 +40,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         setState(() {
           _initialName = doc.get('userName');
           _initialEmail = doc.get('userEmail');
+          _latitude = doc.data()?['userLocation']?['lat'];
+          _longitude = doc.data()?['userLocation']?['lng'];
+          _addressController.text = doc.data()?['userAddress'] ?? '';
           _nameController.text = _initialName;
           _emailController.text = _initialEmail;
         });
@@ -45,10 +52,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _saveChanges() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      Fluttertoast.showToast(msg: "User not logged in.");
-      return;
-    }
+    if (user == null) return;
 
     try {
       if (_emailController.text.trim() != user.email) {
@@ -58,14 +62,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (_currentPasswordController.text.isNotEmpty &&
           _newPasswordController.text.isNotEmpty) {
         final cred = EmailAuthProvider.credential(
-            email: user.email!, password: _currentPasswordController.text.trim());
+          email: user.email!,
+          password: _currentPasswordController.text.trim(),
+        );
         await user.reauthenticateWithCredential(cred);
         await user.updatePassword(_newPasswordController.text.trim());
+      }
+
+      if (_addressController.text.trim().isNotEmpty) {
+        List<geocoding.Location> locations = await geocoding.locationFromAddress(_addressController.text.trim());
+        _latitude = locations.first.latitude;
+        _longitude = locations.first.longitude;
       }
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'userName': _nameController.text.trim(),
         'userEmail': _emailController.text.trim(),
+        'userAddress': _addressController.text.trim(),
+        'userLocation': {'lat': _latitude, 'lng': _longitude},
       });
 
       setState(() {
@@ -157,9 +171,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
           if (password == null || password.isEmpty) return;
 
-          final credential = EmailAuthProvider.credential(email: user.email!, password: password);
-          await user.reauthenticateWithCredential(credential);
+          final credential = EmailAuthProvider.credential(
+            email: user.email!,
+            password: password,
+          );
 
+          await user.reauthenticateWithCredential(credential);
           await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
           await user.delete();
 
@@ -211,10 +228,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "User Profile",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
+        title: const Text("User Profile", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -227,16 +241,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
         padding: const EdgeInsets.all(24.0),
         child: ListView(
           children: [
-            TextField(
-              controller: _nameController,
-              enabled: _isEditing,
-              decoration: _inputBoxDecoration("Full Name"),
-            ),
+            TextField(controller: _nameController, enabled: _isEditing, decoration: _inputBoxDecoration("Full Name")),
             const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              enabled: _isEditing,
-              decoration: _inputBoxDecoration("Email Address"),
+            TextField(controller: _emailController, enabled: _isEditing, decoration: _inputBoxDecoration("Email Address")),
+            const SizedBox(height: 16),
+           Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _addressController,
+                  enabled: _isEditing,
+                  decoration: _inputBoxDecoration("Enter Your Address (Street Name, City)"),
+                ),
+                if (_addressController.text.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text("* Location not set. Please update your address.", style: TextStyle(color: Colors.red)),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             !_isEditing
@@ -248,17 +270,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   )
                 : Column(
                     children: [
-                      TextField(
-                        controller: _currentPasswordController,
-                        obscureText: true,
-                        decoration: _inputBoxDecoration("Current Password"),
-                      ),
+                      TextField(controller: _currentPasswordController, obscureText: true, decoration: _inputBoxDecoration("Current Password")),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: _newPasswordController,
-                        obscureText: true,
-                        decoration: _inputBoxDecoration("New Password"),
-                      ),
+                      TextField(controller: _newPasswordController, obscureText: true, decoration: _inputBoxDecoration("New Password")),
                     ],
                   ),
             const SizedBox(height: 30),
@@ -304,10 +318,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Center(
               child: GestureDetector(
                 onTap: _deleteAccount,
-                child: const Text(
-                  "Delete Account",
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
+                child: const Text("Delete Account", style: TextStyle(color: Colors.red, fontSize: 16)),
               ),
             ),
           ],

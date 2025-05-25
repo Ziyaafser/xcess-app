@@ -72,14 +72,39 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                       const Text("Your Location",
                           style: TextStyle(color: Colors.white, fontSize: 14)),
                       const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Icon(Icons.location_on, color: Colors.white, size: 18),
-                          SizedBox(width: 5),
-                          Text("Johor Bahru",
-                              style: TextStyle(fontSize: 16, color: Colors.white)),
-                        ],
-                      ),
+                      FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser?.uid)
+                          .get(),
+                      builder: (context, snapshot) {
+                        String displayAddress = "Loading...";
+                        if (snapshot.hasData && snapshot.data!.exists) {
+                          displayAddress = snapshot.data!.get('userAddress') ?? "No location set";
+                        }
+
+                        final isUnset = displayAddress == "No location set";
+
+                        return Row(
+                          children: [
+                            const Icon(Icons.location_on, color: Colors.white, size: 18),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                displayAddress,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: isUnset ? Colors.redAccent : Colors.white,
+                                  fontStyle: isUnset ? FontStyle.italic : FontStyle.normal,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+
                       const SizedBox(height: 20),
                       const Text(
                         "Provides the best\nfood for you",
