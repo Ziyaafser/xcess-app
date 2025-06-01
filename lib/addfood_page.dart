@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // ✅ this is correct
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-
 
 class AddFoodPage extends StatefulWidget {
   const AddFoodPage({super.key});
@@ -78,20 +77,19 @@ class _AddFoodPageState extends State<AddFoodPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          backgroundColor: Colors.orange,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            "Add Food",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          centerTitle: true,
-          
+        backgroundColor: Colors.orange,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
-        body: SingleChildScrollView(
+        title: const Text(
+          "Add Food",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -139,81 +137,89 @@ class _AddFoodPageState extends State<AddFoodPage> {
               TextFormField(
                 controller: _priceController,
                 decoration: _inputDecoration("Price (RM)"),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (val) => val!.isEmpty ? 'Enter price' : null,
               ),
               const SizedBox(height: 12),
 
-           Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: const ColorScheme.light(
-                              primary: Colors.orange,
-                              onPrimary: Colors.white,
-                              onSurface: Colors.black,
-                            ),
-                            timePickerTheme: const TimePickerThemeData(
-                            dialBackgroundColor: Color(0xFFFFF3E0),   // soft orange bg
-                            dialHandColor: Colors.orange,
-                            dialTextColor: Colors.black,
-                            hourMinuteColor: Colors.orange,       // lighter than solid orange
-                            hourMinuteTextColor: Colors.black,
-                            entryModeIconColor: Colors.orange,
-                            helpTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                            dayPeriodTextColor: Colors.black,
-                            dayPeriodColor: Colors.orange,
-                            ),
-                          ),
-                          child: child!,
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Colors.orange,
+                                  onPrimary: Colors.white,
+                                  onSurface: Colors.black,
+                                ),
+                                timePickerTheme: const TimePickerThemeData(
+                                  dialBackgroundColor: Color(0xFFFFF3E0),
+                                  dialHandColor: Colors.orange,
+                                  dialTextColor: Colors.black,
+                                  hourMinuteColor: Colors.orange,
+                                  hourMinuteTextColor: Colors.black,
+                                  entryModeIconColor: Colors.orange,
+                                  helpTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                                  dayPeriodTextColor: Colors.black,
+                                  dayPeriodColor: Colors.orange,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
                         );
+                        if (pickedTime != null) {
+                          final now = DateTime.now();
+                          DateTime fullDate = DateTime(
+                            now.year,
+                            now.month,
+                            now.day,
+                            pickedTime.hour,
+                            pickedTime.minute,
+                          );
+
+                          // ✅ Adjust to next day if time is before now
+                          if (fullDate.isBefore(now)) {
+                            fullDate = fullDate.add(const Duration(days: 1));
+                          }
+
+                          setState(() => _expiryTime = fullDate);
+                        }
                       },
-                    );
-                    if (pickedTime != null) {
-                      final now = DateTime.now();
-                      final fullDate = DateTime(
-                        now.year, now.month, now.day,
-                        pickedTime.hour, pickedTime.minute,
-                      );
-                      setState(() => _expiryTime = fullDate);
-                    }
-                  },
-                  icon: const Icon(Icons.timer, color: Colors.white),
-                  label: Text(
-                    _expiryTime == null
-                        ? 'Select Expiry Time'
-                        : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}',
-                    style: const TextStyle(color: Colors.white),
+                      icon: const Icon(Icons.timer, color: Colors.white),
+                      label: Text(
+                        _expiryTime == null
+                            ? 'Select Expiry Time'
+                            : 'Expires at: ${_expiryTime!.hour}:${_expiryTime!.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                ),
+                ],
               ),
-            ],
-          ),
 
               const SizedBox(height: 6),
-             const Text(
+              const Text(
                 "* Food expiry time must be at least 2 hours from now.",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               const Text(
                 "* Price and expiry time cannot be edited after creation.",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
 
               const SizedBox(height: 16),
-
               _dynamicPricingInfoCard(),
-
               const SizedBox(height: 20),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -242,47 +248,47 @@ class _AddFoodPageState extends State<AddFoodPage> {
     );
   }
 
-Widget _dynamicPricingInfoCard() {
-  return Card(
-    color: Colors.orange.shade50,
-    elevation: 2,
-    margin: const EdgeInsets.symmetric(vertical: 10),
-    child: Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            "💡 How Dynamic Pricing Works",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.orange,
+  Widget _dynamicPricingInfoCard() {
+    return Card(
+      color: Colors.orange.shade50,
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              "💡 How Dynamic Pricing Works",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.orange,
+              ),
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "The system will automatically reduce the food price based on how close it is to the expiry time you set.",
-            style: TextStyle(fontSize: 14),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "- Price updates every 15 minutes for better accuracy and performance.\n"
-            "- Discount increases gradually as time passes.\n"
-            "- Max 50% discount is applied exactly 1 hour before expiry.\n"
-            "- The price stays at 50% until expiry.\n"
-            "- Food will be automatically removed from the listing after expiry.",
-            style: TextStyle(fontSize: 13),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "Formula: 50 × (1 - (remaining time ÷ total time))\n"
-            "• Only applies from time of food creation to 1 hour before expiry.",
-            style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
-          ),
-        ],
+            SizedBox(height: 8),
+            Text(
+              "The system will automatically reduce the food price based on how close it is to the expiry time you set.",
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "- Price updates every 15 minutes for better accuracy and performance.\n"
+              "- Discount increases gradually as time passes.\n"
+              "- Max 50% discount is applied exactly 1 hour before expiry.\n"
+              "- The price stays at 50% until expiry.\n"
+              "- Food will be automatically removed from the listing after expiry.",
+              style: TextStyle(fontSize: 13),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Formula: 50 × (1 - (remaining time ÷ total time))\n"
+              "• Only applies from time of food creation to 1 hour before expiry.",
+              style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

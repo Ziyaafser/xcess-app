@@ -39,13 +39,28 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
       _selectedIndex = index;
     });
 
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const EditProfilePage()),
-      );
-    }
+   if (index == 1) {
+     Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddFoodPage()),
+    );
+    setState(() {
+      _selectedIndex = 0;
+    });
+  } else if (index == 3) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditProfilePage()),
+    );
+    setState(() {
+      _selectedIndex = 0;
+    });
+  } else {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +352,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Cart'),
+          BottomNavigationBarItem(icon: Icon(Icons.library_add), label: 'Add'),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
