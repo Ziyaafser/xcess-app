@@ -32,23 +32,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _loadUserDetails();
   }
 
-  void _loadUserDetails() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() {
-          _initialName = doc.get('userName');
-          _initialEmail = doc.get('userEmail');
-          _latitude = doc.data()?['userLocation']?['lat'];
-          _longitude = doc.data()?['userLocation']?['lng'];
-          _addressController.text = doc.data()?['userAddress'] ?? '';
-          _nameController.text = _initialName;
-          _emailController.text = _initialEmail;
-        });
+ void _loadUserDetails() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      final data = doc.data();
+      final geoPoint = data?['userLocation'];
+      if (geoPoint is GeoPoint) {
+        _latitude = geoPoint.latitude;
+        _longitude = geoPoint.longitude;
       }
+
+      setState(() {
+        _initialName = data?['userName'] ?? '';
+        _initialEmail = data?['userEmail'] ?? '';
+        _nameController.text = _initialName;
+        _emailController.text = _initialEmail;
+        _addressController.text = data?['userAddress'] ?? '';
+      });
     }
   }
+}
+
 
   Future<void> _saveChanges() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -79,7 +85,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'userName': _nameController.text.trim(),
         'userEmail': _emailController.text.trim(),
         'userAddress': _addressController.text.trim(),
-        'userLocation': {'lat': _latitude, 'lng': _longitude},
+        'userLocation': GeoPoint(_latitude!, _longitude!),
       });
 
       setState(() {
