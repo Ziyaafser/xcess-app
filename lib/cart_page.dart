@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'place_order_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -268,11 +269,66 @@ class _CartPageState extends State<CartPage> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           ),
-                          onPressed: selectedItems.containsValue(true)
-                              ? () {
-                                  Fluttertoast.showToast(msg: "Proceeding to payment...");
-                                }
-                              : null,
+                       onPressed: selectedItems.containsValue(true)
+                        ? () async {
+                            final selectedDocs = cartItems
+                                .where((doc) => selectedItems[doc.id] == true)
+                                .toList();
+
+                            if (selectedDocs.isEmpty) {
+                              Fluttertoast.showToast(msg: "No items selected.");
+                              return;
+                            }
+
+                            final vendorIDs = selectedDocs
+                                .map((doc) => (doc.data() as Map<String, dynamic>)['vendorID'])
+                                .toSet();
+
+                            if (vendorIDs.length > 1) {
+                              Fluttertoast.showToast(
+                                  msg: "You can only checkout items from the same vendor.");
+                              return;
+                            }
+
+                            final foodList = selectedDocs.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              return {
+                                'foodName': data['foodName'],
+                                'imageUrl': data['imageUrl'],
+                                'price': data['price'],
+                                'quantity': data['quantity'],
+                              };
+                            }).toList();
+
+                            final vendorID = vendorIDs.first;
+                            final vendorDoc = await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(vendorID)
+                                .get();
+
+                            if (!vendorDoc.exists) {
+                              Fluttertoast.showToast(msg: "Vendor not found.");
+                              return;
+                            }
+
+                            final vendorData = vendorDoc.data() as Map<String, dynamic>;
+
+                            final total = foodList.fold<double>(
+                                0.0, (sum, item) => sum + item['price'] * item['quantity']);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PlaceOrderPage(
+                                  items: foodList,
+                                  totalPrice: total,
+                                  vendorData: vendorData,
+                                ),
+                              ),
+                            );
+                          }
+                        : null,
+
                           child: const Text("Review Payment", style: TextStyle(color: Colors.white)),
                         ),
                       ],
