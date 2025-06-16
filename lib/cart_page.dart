@@ -110,7 +110,7 @@ class _CartPageState extends State<CartPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!cartSnapshot.hasData || cartSnapshot.data!.docs.isEmpty) {
+          if (!cartSnapshot.hasData || cartSnapshot.data == null || cartSnapshot.data!.docs.isEmpty) {
             return const Center(child: Text("Your cart is empty"));
           }
 
@@ -290,15 +290,19 @@ class _CartPageState extends State<CartPage> {
                               return;
                             }
 
-                            final foodList = selectedDocs.map((doc) {
-                              final data = doc.data() as Map<String, dynamic>;
-                              return {
-                                'foodName': data['foodName'],
-                                'imageUrl': data['imageUrl'],
-                                'price': data['price'],
-                                'quantity': data['quantity'],
-                              };
-                            }).toList();
+                           final foodList = selectedDocs.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return {
+                              'id': data['foodId'] ?? doc.id,
+                              'foodName': data['foodName'],
+                              'imageUrl': data['imageUrl'],
+                              'price': data['price'],
+                              'quantity': data['quantity'],
+                              'vendorID': data['vendorID'],
+                            };
+                          }).toList();
+
+
 
                             final vendorID = vendorIDs.first;
                             final vendorDoc = await FirebaseFirestore.instance

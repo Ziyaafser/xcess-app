@@ -108,18 +108,19 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
         .doc(user.uid)
         .collection('cart');
 
-    final cartItem = {
-      'userId': user.uid,
-      'foodId': foodData['foodID'],
-      'foodName': foodData['foodName'],
-      'vendorID': foodData['vendorID'],
-      'imageUrl': foodData['imageUrl'],
-      'price': finalPrice,
-      'quantity': _quantity,
-      'available': foodData['quantity'],
-      'timestamp': Timestamp.now(),
-      'status': 'inCart',
-    };
+   final cartItem = {
+  'userId': user.uid,
+  'foodId': widget.foodData.id,
+  'foodName': foodData['foodName'],
+  'vendorID': foodData['vendorID'],
+  'imageUrl': foodData['imageUrl'],
+  'price': finalPrice,
+  'quantity': _quantity,
+  'available': foodData['quantity'],
+  'timestamp': Timestamp.now(),
+  'status': 'inCart',
+};
+
 
     await cartRef.add(cartItem);
 
