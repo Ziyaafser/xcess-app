@@ -132,7 +132,7 @@ class PlaceOrderPage extends StatelessWidget {
     final batch = FirebaseFirestore.instance.batch();
 
     for (var item in items) {
-      final foodId = item['foodId'];
+      final foodId = item['id']; 
       final orderQty = item['quantity'] ?? 1;
 
       if (foodId == null) continue;
@@ -154,6 +154,7 @@ class PlaceOrderPage extends StatelessWidget {
 
     await batch.commit();
   }
+
 
   Future<void> clearCartFromVendor() async {
     final user = FirebaseAuth.instance.currentUser;
