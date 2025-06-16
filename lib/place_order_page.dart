@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+
 import 'customer_home_page.dart';
 
 class PlaceOrderPage extends StatelessWidget {
@@ -106,13 +107,13 @@ class PlaceOrderPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final orderRef = FirebaseFirestore.instance
+    final completedOrderRef = FirebaseFirestore.instance
         .collection('orders')
         .doc(user.uid)
-        .collection('cart');
+        .collection('completed');
 
     for (var item in items) {
-      await orderRef.add({
+      await completedOrderRef.add({
         'userId': user.uid,
         'vendorID': vendorData['userID']?.toString() ?? "",
         'vendorName': vendorData['userName']?.toString() ?? "",
@@ -124,9 +125,11 @@ class PlaceOrderPage extends StatelessWidget {
         'quantity': item['quantity'] ?? 1,
         'timestamp': Timestamp.now(),
         'status': 'Completed',
+        'foodId': item['foodId'] ?? "",
       });
     }
   }
+
 
   Future<void> updateFoodQuantities() async {
     final batch = FirebaseFirestore.instance.batch();
