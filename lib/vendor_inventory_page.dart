@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
 import 'addfood_page.dart';
-import 'editfood_page.dart'; 
+import 'editfood_page.dart';
+import 'vendor_help_center_page.dart';
+
 
 class VendorInventoryPage extends StatefulWidget {
   const VendorInventoryPage({super.key});
@@ -15,11 +17,13 @@ class VendorInventoryPage extends StatefulWidget {
 class _VendorInventoryPageState extends State<VendorInventoryPage> {
   String vendorName = '';
   int _selectedIndex = 0;
+  List<DocumentSnapshot> notifications = [];
 
   @override
   void initState() {
     super.initState();
     fetchVendorName();
+    listenToNotifications();
   }
 
   void fetchVendorName() async {
@@ -34,15 +38,58 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
     }
   }
 
+  void listenToNotifications() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(user.uid)
+        .collection('notifications')
+        .where('seen', isEqualTo: false)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          notifications = snapshot.docs;
+        });
+      }
+    });
+  }
+
+  void markNotificationAsSeen(String docId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    await FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(user.uid)
+        .collection('notifications')
+        .doc(docId)
+        .update({'seen': true});
+
+    setState(() {
+      notifications.removeWhere((n) => n.id == docId);
+    });
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
-   if (index == 1) {
-     Navigator.push(
+     if (index == 1) {
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddFoodPage()),
+    );
+    setState(() {
+      _selectedIndex = 0;
+    });
+  } else if (index == 2) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const VendorHelpCenterPage()),
     );
     setState(() {
       _selectedIndex = 0;
@@ -84,7 +131,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                   children: [
                     Text(
                       vendorName.isNotEmpty ? vendorName : "Loading...",
-                      style: const TextStyle(fontSize: 21,fontWeight: FontWeight.bold, color: Colors.orange),
+                      style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Colors.orange),
                     ),
                     const SizedBox(height: 4),
                     FutureBuilder<DocumentSnapshot>(
@@ -124,7 +171,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                                   location,
                                   style: TextStyle(
                                     color: isUnset ? Colors.redAccent : Colors.orange,
-                                    fontStyle: isUnset ? FontStyle.italic : FontStyle.italic,
+                                    fontStyle: FontStyle.italic,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -172,6 +219,32 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
               ),
             ],
           ),
+
+          if (notifications.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: notifications.map((notification) {
+                  final data = notification.data() as Map<String, dynamic>;
+                  return Card(
+                    color: Colors.yellow[100],
+                    elevation: 3,
+                    child: ListTile(
+                      title: Text(
+                        "New Order: ${data['foodName']} x${data['quantity']}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () {
+                          markNotificationAsSeen(notification.id);
+                        },
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
 
           const SizedBox(height: 30),
           Expanded(
@@ -353,7 +426,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.library_add), label: 'Add'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

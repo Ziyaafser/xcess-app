@@ -27,7 +27,6 @@ class _ExplorePageState extends State<ExplorePage> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         centerTitle: true,
-       
       ),
       body: Column(
         children: [
@@ -73,9 +72,19 @@ class _ExplorePageState extends State<ExplorePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                final now = DateTime.now();
                 final allFoods = snapshot.data!.docs.where((doc) {
-                  final name = doc['foodName'].toString().toLowerCase();
-                  return name.contains(_searchQuery);
+                  try {
+                    final name = doc['foodName'].toString().toLowerCase();
+                    final expiryTimestamp = doc['expiryTime'] as Timestamp?;
+                    final expiryTime = expiryTimestamp?.toDate();
+
+                    return name.contains(_searchQuery) &&
+                        expiryTime != null &&
+                        expiryTime.isAfter(now);
+                  } catch (e) {
+                    return false;
+                  }
                 }).toList();
 
                 if (allFoods.isEmpty) {
