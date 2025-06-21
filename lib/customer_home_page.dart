@@ -401,6 +401,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                   final vendorData =
                                       vendorSnapshot.data!.data() as Map<String, dynamic>;
                                   final vendorName = vendorData['userName'] ?? 'Restaurant';
+                                
                                   final vendorLocation = vendorData['userLocation'] != null &&
                                           vendorData['userLocation'] is GeoPoint
                                       ? vendorData['userLocation'] as GeoPoint

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xcess_app/cart_page.dart';
 import 'package:xcess_app/customer_home_page.dart';
 import 'package:xcess_app/edit_profile_page.dart';
+import 'customer_review_page.dart';
 
 class CustomerHelpCentrePage extends StatefulWidget {
   const CustomerHelpCentrePage({super.key});
@@ -72,21 +73,16 @@ class _CustomerHelpCentrePageState extends State<CustomerHelpCentrePage> {
               children: [
                 _buildSectionCard(
                   context,
-                  icon: Icons.history,
-                  title: "Order History",
-                  subtitle: "View your past purchases and receipts",
-                  onTap: () {
-                    // TODO: Navigate to order history page
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildSectionCard(
-                  context,
                   icon: Icons.rate_review,
                   title: "Rating & Review",
-                  subtitle: "Check reviews and submit feedback",
+                  subtitle: "View past orders, rate collected items, and leave feedback.",
                   onTap: () {
-                    // TODO: Navigate to rating & review page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CustomerRatingReviewPage(),
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(height: 16),

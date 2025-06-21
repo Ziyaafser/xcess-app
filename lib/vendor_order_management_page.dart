@@ -84,8 +84,14 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Management'),
-        backgroundColor: Colors.orange,
+            backgroundColor: Colors.orange,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text("Order Management", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            centerTitle: true,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

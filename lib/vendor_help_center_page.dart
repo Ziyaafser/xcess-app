@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'vendor_order_management_page.dart';
+import 'vendor_order_history.dart';
+import 'vendor_review.dart';
 
 class VendorHelpCenterPage extends StatelessWidget {
   const VendorHelpCenterPage({super.key});
@@ -46,7 +48,10 @@ class VendorHelpCenterPage extends StatelessWidget {
               title: "Order History",
               subtitle: "See all your completed orders.",
               onTap: () {
-                // TODO: Navigate to order history page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VendorOrderHistoryPage()),
+                );
               },
             ),
 
@@ -55,7 +60,10 @@ class VendorHelpCenterPage extends StatelessWidget {
               title: "Review",
               subtitle: "View ratings and feedback from customers.",
               onTap: () {
-                // TODO: Navigate to review page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VendorReviewPage()),
+                );
               },
             ),
 
