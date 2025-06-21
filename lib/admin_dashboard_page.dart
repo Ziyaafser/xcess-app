@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_page.dart';
 import 'account_management_page.dart';
 import 'admin_food_management_page.dart';
-
+import 'admin_view_orders_page.dart'; // <-- Add this import
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -24,40 +24,40 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     fetchUserCounts();
   }
 
-Future<void> fetchUserCounts() async {
-  final snapshot = await FirebaseFirestore.instance.collection('users').get();
+  Future<void> fetchUserCounts() async {
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
 
-  int vendors = 0;
-  int customers = 0;
+    int vendors = 0;
+    int customers = 0;
 
-  for (var doc in snapshot.docs) {
-    final role = doc['role'];
-    if (role == 'vendor') {
-      vendors++;
-    } else if (role == 'customer') {
-      customers++;
+    for (var doc in snapshot.docs) {
+      final role = doc['role'];
+      if (role == 'vendor') {
+        vendors++;
+      } else if (role == 'customer') {
+        customers++;
+      }
     }
+
+    setState(() {
+      totalVendors = vendors;
+      totalCustomers = customers;
+      totalUsers = vendors + customers;
+    });
   }
-
-  setState(() {
-    totalVendors = vendors;
-    totalCustomers = customers;
-    totalUsers = vendors + customers;
-  });
-}
-
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  if (index == 1) { 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const EditProfilePage()),
-    );
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const EditProfilePage()),
+      );
+    }
   }
-}
+
   Widget _buildStatBox(String label, int count) {
     return Expanded(
       child: Container(
@@ -145,7 +145,7 @@ Future<void> fetchUserCounts() async {
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Column(
               children: [
-                 _buildMenuTile("Account Management", Icons.manage_accounts, () {
+                _buildMenuTile("Account Management", Icons.manage_accounts, () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AccountManagementPage()),
@@ -155,6 +155,12 @@ Future<void> fetchUserCounts() async {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AdminFoodManagementPage()),
+                  );
+                }),
+                _buildMenuTile("View Orders", Icons.receipt_long, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminViewOrdersPage()), // <== New navigation
                   );
                 }),
                 _buildMenuTile("View Analytics", Icons.bar_chart, () {
@@ -169,7 +175,7 @@ Future<void> fetchUserCounts() async {
           const SizedBox(height: 30),
         ],
       ),
-     bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
@@ -185,7 +191,6 @@ Future<void> fetchUserCounts() async {
           ),
         ],
       ),
-
     );
   }
 }
