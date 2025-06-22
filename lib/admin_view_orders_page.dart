@@ -158,7 +158,7 @@ class _AdminViewOrdersPageState extends State<AdminViewOrdersPage> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(color: Colors.orange),
+                        borderSide: const BorderSide(color: Colors.grey),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),

@@ -17,6 +17,7 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
   int _quantity = 1;
   bool _addedToCart = false;
   double? _distanceInKm;
+  double? _averageRating;
 
   double getStepBasedDynamicPrice(double originalPrice, Timestamp addedTime, Timestamp expiryTime) {
     final now = DateTime.now();
@@ -108,19 +109,18 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
         .doc(user.uid)
         .collection('cart');
 
-   final cartItem = {
-  'userId': user.uid,
-  'foodId': widget.foodData.id,
-  'foodName': foodData['foodName'],
-  'vendorID': foodData['vendorID'],
-  'imageUrl': foodData['imageUrl'],
-  'price': finalPrice,
-  'quantity': _quantity,
-  'available': foodData['quantity'],
-  'timestamp': Timestamp.now(),
-  'status': 'inCart',
-};
-
+    final cartItem = {
+      'userId': user.uid,
+      'foodId': widget.foodData.id,
+      'foodName': foodData['foodName'],
+      'vendorID': foodData['vendorID'],
+      'imageUrl': foodData['imageUrl'],
+      'price': finalPrice,
+      'quantity': _quantity,
+      'available': foodData['quantity'],
+      'timestamp': Timestamp.now(),
+      'status': 'inCart',
+    };
 
     await cartRef.add(cartItem);
 
@@ -146,10 +146,30 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
     }
   }
 
+  Future<void> _fetchVendorAverageRating(String vendorId) async {
+    final reviewsSnapshot = await FirebaseFirestore.instance
+        .collection('reviews')
+        .where('vendorID', isEqualTo: vendorId)
+        .get();
+
+    if (reviewsSnapshot.docs.isNotEmpty) {
+      final totalRating = reviewsSnapshot.docs.fold<double>(0.0, (sum, doc) => sum + (doc['rating'] ?? 0.0));
+      final average = totalRating / reviewsSnapshot.docs.length;
+      setState(() {
+        _averageRating = average;
+      });
+    } else {
+      setState(() {
+        _averageRating = null;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _calculateDistanceToVendor(widget.foodData['vendorID']);
+    _fetchVendorAverageRating(widget.foodData['vendorID']);
   }
 
   @override
@@ -230,7 +250,10 @@ class _FoodDetailsPageState extends State<FoodDetailsPage> {
                         Text("$quantity pcs left", style: const TextStyle(fontSize: 15)),
                         const SizedBox(width: 20),
                         const Icon(Icons.star, color: Colors.orange, size: 18),
-                        const Text(" 4.9", style: TextStyle(fontSize: 15)),
+                        Text(
+                          _averageRating != null ? " ${_averageRating!.toStringAsFixed(1)}" : " N/A",
+                          style: const TextStyle(fontSize: 15),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),

@@ -188,8 +188,28 @@ class _AdminFoodDetailsPageState extends State<AdminFoodDetailsPage> {
                                 color: Colors.deepOrange)),
                       ],
                     ),
-                    Text("Expiry: ${expiryTime.hour}:${expiryTime.minute.toString().padLeft(2, '0')}",
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black)),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                        "Expiry: ${expiryTime.hour}:${expiryTime.minute.toString().padLeft(2, '0')}, ${expiryTime.day}/${expiryTime.month}/${expiryTime.year}",
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
+                        ),
+                        if (DateTime.now().isAfter(expiryTime))
+                          Container(
+                            margin: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              "This food has expired",
+                              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),

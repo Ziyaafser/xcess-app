@@ -462,18 +462,35 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                                 const SizedBox(height: 4),
                                                 Row(
                                                   children: [
-                                                    const Icon(Icons.star,
-                                                        size: 16, color: Colors.orange),
-                                                    const SizedBox(width: 4),
-                                                    const Text("4.9",
-                                                        style: TextStyle(fontSize: 13)),
-                                                    const SizedBox(width: 12),
-                                                    const Icon(Icons.inventory_2_outlined,
-                                                        size: 14, color: Colors.grey),
-                                                    const SizedBox(width: 4),
-                                                    Text("$quantity units",
-                                                        style:
-                                                            const TextStyle(fontSize: 13)),
+                                                    FutureBuilder<QuerySnapshot>(
+                                                      future: FirebaseFirestore.instance
+                                                          .collection('reviews')
+                                                          .where('vendorID', isEqualTo: vendorID)
+                                                          .get(),
+                                                      builder: (context, reviewSnapshot) {
+                                                        double? avgRating;
+                                                        if (reviewSnapshot.hasData && reviewSnapshot.data!.docs.isNotEmpty) {
+                                                          final reviews = reviewSnapshot.data!.docs;
+                                                          final total = reviews.fold<double>(0.0, (sum, doc) => sum + (doc['rating'] ?? 0.0));
+                                                          avgRating = total / reviews.length;
+                                                        }
+
+                                                        return Row(
+                                                          children: [
+                                                            const Icon(Icons.star, size: 16, color: Colors.orange),
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              avgRating != null ? avgRating.toStringAsFixed(1) : "N/A",
+                                                              style: const TextStyle(fontSize: 13),
+                                                            ),
+                                                            const SizedBox(width: 12),
+                                                            const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
+                                                            const SizedBox(width: 4),
+                                                            Text("$quantity units", style: const TextStyle(fontSize: 13)),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 4),
