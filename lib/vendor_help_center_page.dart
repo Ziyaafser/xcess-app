@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'vendor_order_management_page.dart';
 import 'vendor_order_history.dart';
 import 'vendor_review.dart';
+import 'vendor_analytics_page.dart';
 
 class VendorHelpCenterPage extends StatelessWidget {
   const VendorHelpCenterPage({super.key});
@@ -67,12 +68,15 @@ class VendorHelpCenterPage extends StatelessWidget {
               },
             ),
 
-            _helpTile(
+           _helpTile(
               icon: Icons.analytics_outlined,
-              title: "Impact Tracker",
-              subtitle: "Track your sustainability and sales impact.",
+              title: "Vendor Analytics",
+              subtitle: "Visualize your sales performance and measure your sustainability contribution.",
               onTap: () {
-                // TODO: Navigate to impact tracker page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VendorAnalyticsPage()),
+                );
               },
             ),
           ],

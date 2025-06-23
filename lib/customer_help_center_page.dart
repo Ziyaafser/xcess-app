@@ -3,6 +3,7 @@ import 'package:xcess_app/cart_page.dart';
 import 'package:xcess_app/customer_home_page.dart';
 import 'package:xcess_app/edit_profile_page.dart';
 import 'customer_review_page.dart';
+import 'customer_analytics_page.dart';
 
 class CustomerHelpCentrePage extends StatefulWidget {
   const CustomerHelpCentrePage({super.key});
@@ -85,21 +86,26 @@ class _CustomerHelpCentrePageState extends State<CustomerHelpCentrePage> {
                     );
                   },
                 ),
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
                 _buildSectionCard(
                   context,
-                  icon: Icons.eco,
-                  title: "Impact Tracker",
-                  subtitle: "See how much food waste you've helped reduce",
+                  icon: Icons.bar_chart_rounded,
+                  title: "Your Analytics",
+                  subtitle: "Track your spending and sustainability impact",
                   onTap: () {
-                    // TODO: Navigate to impact tracker page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CustomerAnalyticsPage(),
+                      ),
+                    );
                   },
                 ),
-                const SizedBox(height: 35),
+                const SizedBox(height: 140),
                 Center(
                   child: Image.asset(
                     'assets/images/xcess_logo.png',
-                    height: 80,
+                    height: 70,
                   ),
                 ),
                 const SizedBox(height: 16),
