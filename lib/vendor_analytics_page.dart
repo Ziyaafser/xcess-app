@@ -104,7 +104,7 @@ class _VendorAnalyticsPageState extends State<VendorAnalyticsPage> {
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
-            blurRadius: 6,
+            blurRadius: 3,
             offset: const Offset(0, 3),
           ),
         ],

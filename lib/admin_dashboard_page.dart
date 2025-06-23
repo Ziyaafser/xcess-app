@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_page.dart';
 import 'account_management_page.dart';
 import 'admin_food_management_page.dart';
-import 'admin_view_orders_page.dart'; // <-- Add this import
+import 'admin_view_orders_page.dart';
+import 'admin_analyticsOptions.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -160,11 +161,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 _buildMenuTile("View Orders", Icons.receipt_long, () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const AdminViewOrdersPage()), // <== New navigation
+                    MaterialPageRoute(builder: (_) => const AdminViewOrdersPage()),
                   );
                 }),
                 _buildMenuTile("View Analytics", Icons.bar_chart, () {
-                  // TODO: Navigate to Analytics Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AdminAnalyticsOptionsPage(),
+                    ),
+                  );
                 }),
                 _buildMenuTile("Send Notification", Icons.notifications_active, () {
                   // TODO: Navigate to Notification Page

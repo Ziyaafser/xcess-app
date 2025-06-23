@@ -1,73 +1,65 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pie_chart/pie_chart.dart';
 import 'package:intl/intl.dart';
 
-class CustomerAnalyticsPage extends StatefulWidget {
-  const CustomerAnalyticsPage({super.key});
+class AdminOverallAnalyticsPage extends StatefulWidget {
+  const AdminOverallAnalyticsPage({super.key});
 
   @override
-  State<CustomerAnalyticsPage> createState() => _CustomerAnalyticsPageState();
+  State<AdminOverallAnalyticsPage> createState() => _AdminOverallAnalyticsPageState();
 }
 
-class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
-  double totalSpend = 0.0;
-  double todaySpend = 0.0;
-  int totalOrders = 0;
+class _AdminOverallAnalyticsPageState extends State<AdminOverallAnalyticsPage> {
+  double totalRevenue = 0.0;
+  double todayRevenue = 0.0;
+  int totalUnitsSold = 0;
+  Map<String, double> bestSellingItems = {};
   double estimatedKgSaved = 0.0;
-
-  final String customerId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
     super.initState();
-    fetchCustomerOrderData();
+    fetchAllVendorSalesData();
   }
 
-  Future<void> fetchCustomerOrderData() async {
-    double spendTodayTemp = 0.0;
-    double spendTotalTemp = 0.0;
-    int ordersCount = 0;
+  Future<void> fetchAllVendorSalesData() async {
+    double totalRevenueTemp = 0.0;
+    double todayRevenueTemp = 0.0;
     int totalQty = 0;
+    Map<String, double> itemSales = {};
     final now = DateTime.now();
 
     final completedOrders = await FirebaseFirestore.instance
-        .collection('orders')
-        .doc(customerId)
-        .collection('completed')
+        .collectionGroup('completed')
         .get();
-
-
-    print("Fetched ${completedOrders.docs.length} completed orders for userID: $customerId");
 
     for (var doc in completedOrders.docs) {
       final data = doc.data();
       final qty = int.tryParse(data['quantity'].toString()) ?? 0;
       final price = double.tryParse(data['price'].toString()) ?? 0.0;
+      final foodName = data['foodName'] ?? 'Unknown';
       final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
 
-      print("Document: quantity=$qty, price=$price, timestamp=$timestamp");
-
+      totalRevenueTemp += price * qty;
       totalQty += qty;
-      spendTotalTemp += price * qty;
-      ordersCount++;
+      itemSales[foodName] = (itemSales[foodName] ?? 0) + qty.toDouble();
 
       if (timestamp != null &&
           timestamp.year == now.year &&
           timestamp.month == now.month &&
           timestamp.day == now.day) {
-        spendTodayTemp += price * qty;
+        todayRevenueTemp += price * qty;
       }
     }
 
     setState(() {
-      todaySpend = spendTodayTemp;
-      totalSpend = spendTotalTemp;
-      totalOrders = ordersCount;
+      totalRevenue = totalRevenueTemp;
+      todayRevenue = todayRevenueTemp;
+      totalUnitsSold = totalQty;
+      bestSellingItems = itemSales;
       estimatedKgSaved = totalQty * 0.5;
     });
-
-    print("Today Spend: $todaySpend, Total Spend: $totalSpend, Total Orders: $totalOrders, Estimated KG Saved: $estimatedKgSaved");
   }
 
   Widget buildMetricCard(String title, String value, Color color) {
@@ -102,12 +94,12 @@ class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 250, 236, 209),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 2,
+            color: Colors.black12,
+            blurRadius: 6,
             offset: const Offset(0, 3),
           ),
         ],
@@ -143,14 +135,15 @@ class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final formattedTodaySpend = NumberFormat.currency(symbol: "RM ").format(todaySpend);
-    final formattedTotalSpend = NumberFormat.currency(symbol: "RM ").format(totalSpend);
+    final formattedTodayRevenue =
+        NumberFormat.currency(symbol: "RM ").format(todayRevenue);
+    final formattedTotalRevenue =
+        NumberFormat.currency(symbol: "RM ").format(totalRevenue);
 
-    // Sustainability calculations
-    double totalWaterSaved = estimatedKgSaved * 100; // in liters
-    int showerMinutes = (totalWaterSaved / 17).round(); // based on 17L/min
+    double totalWaterSaved = estimatedKgSaved * 100;
+    int showerMinutes = (totalWaterSaved / 17).round();
     int smartphoneCharges = (estimatedKgSaved * 1126).round();
-    double peopleFed = estimatedKgSaved; // 1kg feeds 1 person
+    double peopleFed = estimatedKgSaved;
 
     return Scaffold(
       appBar: AppBar(
@@ -162,7 +155,7 @@ class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Customer Analytics",
+          "Overall Order Analytics",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
       ),
@@ -172,11 +165,32 @@ class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Customer Performance", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              const Text("Sales Performance", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              buildMetricCard("YOUR SPEND TODAY", formattedTodaySpend, Colors.orange.shade500),
-              buildMetricCard("TOTAL AMOUNT SPENT", formattedTotalSpend, const Color(0xFFeec280)),
-              buildMetricCard("TOTAL ORDERS", '$totalOrders orders', Colors.orange.shade500),
+              buildMetricCard("TOTAL SALES (TODAY)", formattedTodayRevenue, Colors.orange.shade500),
+              buildMetricCard("TOTAL SALES (ALL TIME)", formattedTotalRevenue, const Color(0xFFeec280)),
+              buildMetricCard("TOTAL UNITS SOLD", '$totalUnitsSold items', Colors.orange.shade500),
+              const SizedBox(height: 29),
+              const Text("Best Selling Items", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+              const SizedBox(height: 29),
+              bestSellingItems.isEmpty
+                  ? const Text("No sales data available.")
+                  : SizedBox(
+                      height: 350,
+                      child: PieChart(
+                        dataMap: bestSellingItems,
+                        chartType: ChartType.ring,
+                        ringStrokeWidth: 38,
+                        chartValuesOptions: const ChartValuesOptions(
+                          showChartValuesInPercentage: true,
+                          showChartValuesOutside: true,
+                        ),
+                        legendOptions: const LegendOptions(
+                          showLegends: true,
+                          legendPosition: LegendPosition.bottom,
+                        ),
+                      ),
+                    ),
               const SizedBox(height: 32),
               const Text("Sustainability Impact Tracker", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
               const SizedBox(height: 16),
@@ -184,7 +198,7 @@ class _CustomerAnalyticsPageState extends State<CustomerAnalyticsPage> {
               const Padding(
                 padding: EdgeInsets.only(bottom: 16.0),
                 child: Text(
-                  "  Note: Estimated based on 0.5KG saved per unit of food purchased.",
+                  "       Note: Estimated based on 0.5KG saved per unit of food sold.",
                   style: TextStyle(color: Colors.orange, fontSize: 12),
                 ),
               ),
