@@ -3,7 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import 'customer_home_page.dart';
 
 class PlaceOrderPage extends StatelessWidget {
@@ -26,76 +26,92 @@ class PlaceOrderPage extends StatelessWidget {
       });
 
       final clientSecret = response.data['clientSecret'];
-      if (clientSecret == null) {
-        throw Exception("Failed to fetch client secret");
-      }
+      final nextAction = response.data['nextAction'];
 
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Xcess',
-          style: ThemeMode.light,
-        ),
-      );
+      if (nextAction != null && nextAction['type'] == 'redirect_to_url') {
+        // Handle GrabPay redirect
+        final url = nextAction['redirect_to_url']['url'];
+        if (await canLaunchUrl(Uri.parse(url))) {
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        } else {
+          throw Exception('Could not launch GrabPay URL');
+        }
 
-      await Stripe.instance.presentPaymentSheet();
+        // You might want to wait or check webhook status for completion
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Redirected to GrabPay. Complete payment there.")),
+        );
 
-      await saveOrder();
-      await updateFoodQuantities();
-      await clearCartFromVendor();
-
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          contentPadding: const EdgeInsets.all(20),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
-              const SizedBox(height: 16),
-              const Text("Payment Successful!",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              const Text("Your order has been placed successfully.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.black54)),
-              const SizedBox(height: 12),
-              const Text("Pickup Address:", style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(
-                vendorData['userAddress']?.toString() ?? "Address not found",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CustomerHomePage()),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text("Back to Home",
-                      style: TextStyle(fontSize: 16, color: Colors.white)),
-                ),
-              )
-            ],
+      } else {
+        // Handle Card flow via PaymentSheet
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: clientSecret,
+            merchantDisplayName: 'Xcess',
+            style: ThemeMode.light,
           ),
-        ),
-      );
+        );
+
+        await Stripe.instance.presentPaymentSheet();
+
+        // After successful payment
+        await saveOrder();
+        await updateFoodQuantities();
+        await clearCartFromVendor();
+
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.all(20),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
+                const SizedBox(height: 16),
+                const Text("Payment Successful!",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                const Text("Your order has been placed successfully.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.black54)),
+                const SizedBox(height: 12),
+                const Text("Pickup Address:", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(
+                  vendorData['userAddress']?.toString() ?? "Address not found",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CustomerHomePage()),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text("Back to Home",
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Payment failed: $e")),

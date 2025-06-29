@@ -46,7 +46,7 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   pie_chart: ^5.1.0
   intl: ^0.18.1
-
+  url_launcher: ^6.1.7
 
 
 

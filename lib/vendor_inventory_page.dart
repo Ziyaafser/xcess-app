@@ -38,6 +38,24 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
     }
   }
 
+    Future<double> fetchVendorRating(String vendorId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('reviews')
+        .where('vendorID', isEqualTo: vendorId)
+        .get();
+
+    if (snapshot.docs.isEmpty) return 0.0;
+
+    double total = 0.0;
+    for (var doc in snapshot.docs) {
+      final rating = double.tryParse(doc['rating'].toString()) ?? 0.0;
+      total += rating;
+    }
+
+    return total / snapshot.docs.length;
+  }
+
+
   void listenToNotifications() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -361,17 +379,26 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star, size: 16, color: Colors.orange),
-                                    const SizedBox(width: 4),
-                                    const Text("4.9", style: TextStyle(fontSize: 13)),
-                                    const SizedBox(width: 12),
-                                    const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text("$quantity units", style: const TextStyle(fontSize: 13)),
-                                  ],
-                                ),
+                               FutureBuilder<double>(
+                                future: fetchVendorRating(food['vendorID']),
+                                builder: (context, ratingSnapshot) {
+                                  final rating = ratingSnapshot.data ?? 0.0;
+                                  final ratingText = rating == 0.0 ? "N/A" : rating.toStringAsFixed(1);
+
+                                  return Row(
+                                    children: [
+                                      const Icon(Icons.star, size: 16, color: Colors.orange),
+                                      const SizedBox(width: 4),
+                                      Text(ratingText, style: const TextStyle(fontSize: 13)),
+                                      const SizedBox(width: 12),
+                                      const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Text("$quantity units", style: const TextStyle(fontSize: 13)),
+                                    ],
+                                  );
+                                },
+                              ),
+                              
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [

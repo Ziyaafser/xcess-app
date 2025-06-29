@@ -5,9 +5,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'vendor_inventory_page.dart';
 import 'customer_home_page.dart';
 import 'admin_dashboard_page.dart';
-
-
-import 'register_page.dart'; // for navigation if needed
+import 'forgot_password_page.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -119,7 +118,12 @@ Widget build(BuildContext context) {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+               onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+                    );
+                  },
                   child: const Text(
                     "Forgot password?",
                     style: TextStyle(color: Colors.orange),
