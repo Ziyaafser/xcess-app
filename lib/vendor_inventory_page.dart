@@ -56,40 +56,47 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
   }
 
 
-  void listenToNotifications() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    void listenToNotifications() {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
-    FirebaseFirestore.instance
-        .collection('vendors')
-        .doc(user.uid)
-        .collection('notifications')
-        .where('seen', isEqualTo: false)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(user.uid)
+          .collection('userNotifications')
+          .where('seen', isEqualTo: false)
+          .snapshots()
+          .listen((snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          setState(() {
+            notifications = snapshot.docs;
+          });
+        } else {
+          setState(() {
+            notifications = [];
+          });
+        }
+      });
+    }
+
+
+      void markNotificationAsSeen(String docId) async {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) return;
+
+        await FirebaseFirestore.instance
+            .collection('notifications')
+            .doc(user.uid)
+            .collection('userNotifications')
+            .doc(docId)
+            .update({'seen': true});
+
         setState(() {
-          notifications = snapshot.docs;
+          notifications.removeWhere((n) => n.id == docId);
         });
       }
-    });
-  }
 
-  void markNotificationAsSeen(String docId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
 
-    await FirebaseFirestore.instance
-        .collection('vendors')
-        .doc(user.uid)
-        .collection('notifications')
-        .doc(docId)
-        .update({'seen': true});
-
-    setState(() {
-      notifications.removeWhere((n) => n.id == docId);
-    });
-  }
 
   void _onItemTapped(int index) {
     setState(() {

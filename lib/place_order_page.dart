@@ -129,10 +129,11 @@ class PlaceOrderPage extends StatelessWidget {
         .collection('completed');
 
     final vendorId = vendorData['userID'];
-    final vendorNotificationRef = FirebaseFirestore.instance
-        .collection('vendors')
-        .doc(vendorId)
-        .collection('notifications');
+
+  final notificationRef = FirebaseFirestore.instance
+      .collection('notifications')
+      .doc(vendorId)
+      .collection('userNotifications');
 
     for (var item in items) {
       // Save completed order
@@ -151,8 +152,9 @@ class PlaceOrderPage extends StatelessWidget {
         'foodId': item['foodId'] ?? "",
       });
 
-      // Send notification to vendor
-      await vendorNotificationRef.add({
+      await notificationRef.add({
+        'userId': vendorId,
+        'role': 'vendor',
         'title': 'New Order Received',
         'foodName': item['foodName'] ?? "",
         'quantity': item['quantity'] ?? 1,
@@ -161,6 +163,7 @@ class PlaceOrderPage extends StatelessWidget {
       });
     }
   }
+
 
 
 
