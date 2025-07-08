@@ -15,6 +15,7 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
   List<Map<String, dynamic>> filteredOrders = [];
   bool isLoading = true;
   String searchQuery = '';
+  String sortOrder = 'Newest First'; // New state for sorting
 
   @override
   void initState() {
@@ -58,13 +59,25 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
   }
 
   void applySearchFilter(String query) {
+    searchQuery = query.toLowerCase();
+
+    List<Map<String, dynamic>> results = vendorOrders.where((order) {
+      final customerName = order['userName']?.toLowerCase() ?? '';
+      final foodName = order['foodName']?.toLowerCase() ?? '';
+      return customerName.contains(searchQuery) || foodName.contains(searchQuery);
+    }).toList();
+
+    results.sort((a, b) {
+      final aTime = a['timestamp'] as Timestamp?;
+      final bTime = b['timestamp'] as Timestamp?;
+      if (aTime == null || bTime == null) return 0;
+      return sortOrder == 'Newest First'
+          ? bTime.compareTo(aTime)
+          : aTime.compareTo(bTime);
+    });
+
     setState(() {
-      searchQuery = query.toLowerCase();
-      filteredOrders = vendorOrders.where((order) {
-        final customerName = order['userName']?.toLowerCase() ?? '';
-        final foodName = order['foodName']?.toLowerCase() ?? '';
-        return customerName.contains(searchQuery) || foodName.contains(searchQuery);
-      }).toList();
+      filteredOrders = results;
     });
   }
 
@@ -138,6 +151,32 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                       ),
                     ),
                     onChanged: applySearchFilter,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text("Sort: "),
+                      DropdownButton<String>(
+                        value: sortOrder,
+                        items: ['Newest First', 'Oldest First'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              sortOrder = newValue;
+                              applySearchFilter(searchQuery);
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(

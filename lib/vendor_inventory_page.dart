@@ -6,7 +6,6 @@ import 'addfood_page.dart';
 import 'editfood_page.dart';
 import 'vendor_help_center_page.dart';
 
-
 class VendorInventoryPage extends StatefulWidget {
   const VendorInventoryPage({super.key});
 
@@ -38,7 +37,7 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
     }
   }
 
-    Future<double> fetchVendorRating(String vendorId) async {
+  Future<double> fetchVendorRating(String vendorId) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('reviews')
         .where('vendorID', isEqualTo: vendorId)
@@ -55,84 +54,80 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
     return total / snapshot.docs.length;
   }
 
+  void listenToNotifications() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-    void listenToNotifications() {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      FirebaseFirestore.instance
-          .collection('notifications')
-          .doc(user.uid)
-          .collection('userNotifications')
-          .where('seen', isEqualTo: false)
-          .snapshots()
-          .listen((snapshot) {
-        if (snapshot.docs.isNotEmpty) {
-          setState(() {
-            notifications = snapshot.docs;
-          });
-        } else {
-          setState(() {
-            notifications = [];
-          });
-        }
-      });
-    }
-
-
-      void markNotificationAsSeen(String docId) async {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user == null) return;
-
-        await FirebaseFirestore.instance
-            .collection('notifications')
-            .doc(user.uid)
-            .collection('userNotifications')
-            .doc(docId)
-            .update({'seen': true});
-
+    FirebaseFirestore.instance
+        .collection('notifications')
+        .doc(user.uid)
+        .collection('userNotifications')
+        .where('seen', isEqualTo: false)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
         setState(() {
-          notifications.removeWhere((n) => n.id == docId);
+          notifications = snapshot.docs;
+        });
+      } else {
+        setState(() {
+          notifications = [];
         });
       }
+    });
+  }
 
+  void markNotificationAsSeen(String docId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
+    await FirebaseFirestore.instance
+        .collection('notifications')
+        .doc(user.uid)
+        .collection('userNotifications')
+        .doc(docId)
+        .update({'seen': true});
+
+    setState(() {
+      notifications.removeWhere((n) => n.id == docId);
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
-     if (index == 1) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const AddFoodPage()),
-    );
-    setState(() {
-      _selectedIndex = 0;
-    });
-  } else if (index == 2) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const VendorHelpCenterPage()),
-    );
-    setState(() {
-      _selectedIndex = 0;
-    });
-  } else if (index == 3) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const EditProfilePage()),
-    );
-    setState(() {
-      _selectedIndex = 0;
-    });
-  } else {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AddFoodPage()),
+      );
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const VendorHelpCenterPage()),
+      );
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const EditProfilePage()),
+      );
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +239,6 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
               ),
             ],
           ),
-
           if (notifications.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(12.0),
@@ -270,7 +264,6 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                 }).toList(),
               ),
             ),
-
           const SizedBox(height: 30),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -288,7 +281,20 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                   return const Center(child: Text("No food listed yet", style: TextStyle(color: Colors.grey)));
                 }
 
-                final foodItems = snapshot.data!.docs;
+                final allFoods = snapshot.data!.docs;
+                final now = DateTime.now();
+
+                final activeFoods = allFoods.where((doc) {
+                  final expiry = (doc['expiryTime'] as Timestamp).toDate();
+                  return expiry.isAfter(now);
+                }).toList();
+
+                final expiredFoods = allFoods.where((doc) {
+                  final expiry = (doc['expiryTime'] as Timestamp).toDate();
+                  return expiry.isBefore(now);
+                }).toList();
+
+                final sortedFoods = [...activeFoods, ...expiredFoods]; // Active first
 
                 return GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -298,9 +304,9 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                     crossAxisSpacing: 16,
                     childAspectRatio: 0.78,
                   ),
-                  itemCount: foodItems.length,
+                  itemCount: sortedFoods.length,
                   itemBuilder: (context, index) {
-                    final food = foodItems[index];
+                    final food = sortedFoods[index];
                     final name = food['foodName'];
                     final imageUrl = food['imageUrl'];
                     final quantity = food['quantity'];
@@ -309,9 +315,8 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                     final expiryTime = food['expiryTime'] as Timestamp;
                     final dynamicPrice = getStepBasedDynamicPrice(price, addedTime, expiryTime);
 
-                    final now = DateTime.now();
                     final expiry = expiryTime.toDate();
-                    Duration remaining = expiry.difference(now);
+                    final remaining = expiry.difference(DateTime.now());
 
                     String remainingTimeText;
                     if (remaining.isNegative) {
@@ -386,26 +391,25 @@ class _VendorInventoryPageState extends State<VendorInventoryPage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                               FutureBuilder<double>(
-                                future: fetchVendorRating(food['vendorID']),
-                                builder: (context, ratingSnapshot) {
-                                  final rating = ratingSnapshot.data ?? 0.0;
-                                  final ratingText = rating == 0.0 ? "N/A" : rating.toStringAsFixed(1);
+                                FutureBuilder<double>(
+                                  future: fetchVendorRating(food['vendorID']),
+                                  builder: (context, ratingSnapshot) {
+                                    final rating = ratingSnapshot.data ?? 0.0;
+                                    final ratingText = rating == 0.0 ? "N/A" : rating.toStringAsFixed(1);
 
-                                  return Row(
-                                    children: [
-                                      const Icon(Icons.star, size: 16, color: Colors.orange),
-                                      const SizedBox(width: 4),
-                                      Text(ratingText, style: const TextStyle(fontSize: 13)),
-                                      const SizedBox(width: 12),
-                                      const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
-                                      const SizedBox(width: 4),
-                                      Text("$quantity units", style: const TextStyle(fontSize: 13)),
-                                    ],
-                                  );
-                                },
-                              ),
-                              
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.star, size: 16, color: Colors.orange),
+                                        const SizedBox(width: 4),
+                                        Text(ratingText, style: const TextStyle(fontSize: 13)),
+                                        const SizedBox(width: 12),
+                                        const Icon(Icons.inventory_2_outlined, size: 14, color: Colors.grey),
+                                        const SizedBox(width: 4),
+                                        Text("$quantity units", style: const TextStyle(fontSize: 13)),
+                                      ],
+                                    );
+                                  },
+                                ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [

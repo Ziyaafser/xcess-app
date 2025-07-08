@@ -66,7 +66,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
       });
 
       Fluttertoast.showToast(msg: 'Food added successfully!');
-      Navigator.pop(context); // Go back after success
+      Navigator.pop(context); 
     } catch (e) {
       Fluttertoast.showToast(msg: 'Failed to add food: $e');
     }
